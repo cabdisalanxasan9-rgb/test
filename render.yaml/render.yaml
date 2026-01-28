@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: test-laravel
+    runtime: php # Halkan ayaa lagu qeexayaa PHP
+    buildCommand: composer install && npm install && npm run build
+    startCommand: php artisan serve --host=0.0.0.0 --port=$PORT
