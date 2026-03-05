@@ -21,5 +21,9 @@ putenv("VIEW_COMPILED_PATH=$viewPath");
 putenv("SESSION_DRIVER=cookie"); // Sessions can't be file-based on Vercel
 putenv("LOG_CHANNEL=stderr");    // Logs should go to Vercel logs
 
+if (!getenv('APP_URL') && getenv('VERCEL_URL')) {
+    putenv('APP_URL=https://' . getenv('VERCEL_URL'));
+}
+
 // 3. Load Laravel's public/index.php
 require __DIR__ . '/../public/index.php';
