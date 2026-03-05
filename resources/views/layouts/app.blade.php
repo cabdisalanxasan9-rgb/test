@@ -5,15 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Kharash Gym')</title>
     @php
-        $hasViteManifest = file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot'));
+        $hasHotFile = file_exists(public_path('hot'));
+        $manifestPath = public_path('build/manifest.json');
+        $manifest = file_exists($manifestPath) ? json_decode((string) file_get_contents($manifestPath), true) : null;
+        $cssFile = $manifest['resources/css/app.css']['file'] ?? 'assets/app-CIgUqIbS.css';
+        $jsFile = $manifest['resources/js/app.js']['file'] ?? 'assets/app-Di7tyDlp.js';
     @endphp
 
-    @if($hasViteManifest)
+    @if($hasHotFile)
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     @else
-        <style>
-            body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 0; }
-        </style>
+        <link rel="stylesheet" href="{{ '/build/' . $cssFile }}">
+        <script type="module" src="{{ '/build/' . $jsFile }}"></script>
     @endif
 </head>
 <body class="min-h-screen bg-background text-foreground antialiased">
