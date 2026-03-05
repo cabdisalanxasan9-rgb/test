@@ -6,22 +6,40 @@
  */
 
 // 1. Fix for Vercel's Read-Only Filesystem
-// Laravel needs to write to storage/framework/views and cache.
-// Vercel only allows writing to /tmp.
+// Laravel needs writable runtime folders. On Vercel only /tmp is writable.
 $storagePath = '/tmp/storage';
-$viewPath = '/tmp/storage/framework/views';
 
-if (!is_dir($viewPath)) {
-    mkdir($viewPath, 0755, true);
+$requiredDirs = [
+    $storagePath,
+    $storagePath . '/framework',
+    $storagePath . '/framework/cache',
+    $storagePath . '/framework/cache/data',
+    $storagePath . '/framework/sessions',
+    $storagePath . '/framework/testing',
+    $storagePath . '/framework/views',
+    $storagePath . '/logs',
+    '/tmp/bootstrap/cache',
+];
+
+foreach ($requiredDirs as $dir) {
+    if (!is_dir($dir)) {
+        mkdir($dir, 0755, true);
+    }
 }
 
 // 2. Set Environment Variables for Vercel
 // These ensure Laravel uses /tmp for things it needs to write.
-putenv("VIEW_COMPILED_PATH=$viewPath");
+putenv("LARAVEL_STORAGE_PATH=$storagePath");
+putenv("VIEW_COMPILED_PATH=$storagePath/framework/views");
 putenv("SESSION_DRIVER=cookie"); // Sessions can't be file-based on Vercel
 putenv("LOG_CHANNEL=stderr");    // Logs should go to Vercel logs
 putenv("CACHE_STORE=array");     // Avoid database cache requirement on serverless
 putenv("QUEUE_CONNECTION=sync"); // Avoid database queue requirement on serverless
+putenv("APP_CONFIG_CACHE=/tmp/bootstrap/cache/config.php");
+putenv("APP_ROUTES_CACHE=/tmp/bootstrap/cache/routes-v7.php");
+putenv("APP_EVENTS_CACHE=/tmp/bootstrap/cache/events.php");
+putenv("APP_PACKAGES_CACHE=/tmp/bootstrap/cache/packages.php");
+putenv("APP_SERVICES_CACHE=/tmp/bootstrap/cache/services.php");
 
 if (!getenv('APP_URL') && getenv('VERCEL_URL')) {
     putenv('APP_URL=https://' . getenv('VERCEL_URL'));
