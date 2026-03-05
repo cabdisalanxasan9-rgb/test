@@ -20,9 +20,18 @@ if (!is_dir($viewPath)) {
 putenv("VIEW_COMPILED_PATH=$viewPath");
 putenv("SESSION_DRIVER=cookie"); // Sessions can't be file-based on Vercel
 putenv("LOG_CHANNEL=stderr");    // Logs should go to Vercel logs
+putenv("CACHE_STORE=array");     // Avoid database cache requirement on serverless
+putenv("QUEUE_CONNECTION=sync"); // Avoid database queue requirement on serverless
 
 if (!getenv('APP_URL') && getenv('VERCEL_URL')) {
     putenv('APP_URL=https://' . getenv('VERCEL_URL'));
+}
+
+if (!getenv('APP_KEY')) {
+    // 32-byte deterministic key for serverless fallback. Prefer setting APP_KEY in Vercel env.
+    $seed = getenv('VERCEL_PROJECT_PRODUCTION_URL') ?: (getenv('VERCEL_URL') ?: 'laravel-vercel-fallback');
+    $rawKey = hash('sha256', $seed, true);
+    putenv('APP_KEY=base64:' . base64_encode($rawKey));
 }
 
 // 3. Load Laravel's public/index.php
