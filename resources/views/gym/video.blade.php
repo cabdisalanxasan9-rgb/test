@@ -20,8 +20,13 @@
     </header>
     
     <main class="flex-1 px-6 space-y-6">
-        <!-- YouTube Video Player -->
+        <!-- Video Player -->
         <div class="relative overflow-hidden rounded-3xl bg-black aspect-video">
+            @php
+                $videoSource = $workout['video_source'] ?? (!empty($workout['video_id']) ? 'youtube' : 'url');
+            @endphp
+
+            @if($videoSource === 'youtube' && !empty($workout['video_id']))
             <iframe 
                 width="100%" 
                 height="100%" 
@@ -33,6 +38,22 @@
                 referrerpolicy="strict-origin-when-cross-origin"
                 class="absolute inset-0 w-full h-full"
             ></iframe>
+            @elseif(!empty($workout['video_url']))
+            <video
+                class="absolute inset-0 h-full w-full"
+                controls
+                playsinline
+                preload="metadata"
+                poster="{{ $workout['image'] }}"
+            >
+                <source src="{{ $workout['video_url'] }}" type="video/mp4">
+                Browser-kaagu ma taageerayo video player-kan.
+            </video>
+            @else
+            <div class="absolute inset-0 flex items-center justify-center px-6 text-center text-slate-300">
+                Video lama helin workout-kan.
+            </div>
+            @endif
         </div>
 
         <!-- Workout Info -->

@@ -4,9 +4,15 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GymController;
 use App\Http\Controllers\AuthController;
 
-// Public Routes
-Route::get('/', [GymController::class, 'index'])->name('gym.home');
-Route::get('/promo', [GymController::class, 'promo'])->name('gym.promo');
+// App entry route: show login first for guests.
+Route::get('/', function () {
+    return auth()->check()
+        ? redirect()->route('gym.dashboard')
+        : redirect()->route('login');
+})->name('app.entry');
+
+// Dedicated home page route.
+Route::get('/home', [GymController::class, 'index'])->name('gym.home');
 
 // Auth Routes
 Route::middleware('guest')->group(function () {
@@ -20,6 +26,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Protected Gym Routes
 Route::middleware('auth')->group(function () {
+    Route::post('/profile/avatar', [GymController::class, 'updateProfileImage'])->name('gym.profile.avatar');
+    Route::get('/promo', [GymController::class, 'promo'])->name('gym.promo');
     Route::get('/dashboard', [GymController::class, 'dashboard'])->name('gym.dashboard');
     Route::get('/schedule', [GymController::class, 'schedule'])->name('gym.schedule');
     Route::get('/workouts', [GymController::class, 'workouts'])->name('gym.workouts');

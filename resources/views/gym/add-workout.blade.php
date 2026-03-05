@@ -16,8 +16,14 @@
     </header>
     
     <main class="flex-1 px-6 space-y-10 pt-4">
-        <form action="{{ route('gym.add-workout.submit') }}" method="POST" class="space-y-8 pb-10">
+        <form action="{{ route('gym.add-workout.submit') }}" method="POST" enctype="multipart/form-data" class="space-y-8 pb-10">
             @csrf
+
+            @if ($errors->any())
+            <div class="rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-200">
+                {{ $errors->first() }}
+            </div>
+            @endif
             
             <!-- Workout Name -->
             <div class="space-y-2">
@@ -68,6 +74,13 @@
             <div class="space-y-2">
                 <label class="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">YouTube URL</label>
                 <input type="url" name="video_url" placeholder="https://youtube.com/watch?v=..." class="w-full rounded-2xl bg-slate-900 border border-white/5 px-5 py-4 text-foreground placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all shadow-xl" />
+            </div>
+
+            <!-- Workout Image -->
+            <div class="space-y-2">
+                <label class="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">Sawirka Jimicsiga</label>
+                <input type="file" name="image" accept="image/png,image/jpeg,image/jpg,image/webp" class="w-full rounded-2xl bg-slate-900 border border-white/5 px-4 py-3 text-foreground file:mr-4 file:rounded-xl file:border-0 file:bg-primary file:px-4 file:py-2 file:text-xs file:font-black file:uppercase file:tracking-widest file:text-white hover:file:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all shadow-xl" />
+                <p class="text-xs font-bold text-slate-500">Ikhtiyaari: JPG, PNG, ama WEBP (ugu badnaan 4MB).</p>
             </div>
 
             <!-- Submit Button -->

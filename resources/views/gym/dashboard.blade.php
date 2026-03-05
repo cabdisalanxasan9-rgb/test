@@ -4,12 +4,33 @@
 
 @section('content')
 <div class="flex min-h-screen flex-col bg-background pb-32 text-foreground">
+    @if (session('success'))
+    <div class="px-6 pt-4">
+        <div class="rounded-2xl border border-emerald-400/30 bg-emerald-500/10 px-4 py-3 text-sm font-bold text-emerald-200">
+            {{ session('success') }}
+        </div>
+    </div>
+    @endif
+
+    @if ($errors->has('avatar'))
+    <div class="px-6 pt-4">
+        <div class="rounded-2xl border border-red-400/30 bg-red-500/10 px-4 py-3 text-sm font-bold text-red-200">
+            {{ $errors->first('avatar') }}
+        </div>
+    </div>
+    @endif
+
     <!-- Header -->
     <header class="flex items-center justify-between px-6 py-6 sticky top-0 z-50 bg-background/80 backdrop-blur-lg">
         <div class="flex items-center gap-4">
-            <div class="h-12 w-12 overflow-hidden rounded-full border-2 border-white/10 shadow-xl">
-                <img src="{{ $user['avatar'] ?? 'https://i.pravatar.cc/150?u=axmedcali' }}" alt="Profile" class="h-full w-full object-cover">
-            </div>
+            <form id="avatar-form" action="{{ route('gym.profile.avatar') }}" method="POST" enctype="multipart/form-data" class="relative">
+                @csrf
+                <input id="avatar-input" type="file" name="avatar" accept="image/png,image/jpeg,image/jpg,image/webp" class="hidden" />
+                <button type="button" onclick="document.getElementById('avatar-input').click()" class="group relative h-12 w-12 overflow-hidden rounded-full border-2 border-white/10 shadow-xl">
+                    <img src="{{ $user['avatar'] ?? 'https://i.pravatar.cc/150?u=axmedcali' }}" alt="Profile" class="h-full w-full object-cover">
+                    <span class="absolute inset-0 flex items-center justify-center bg-black/45 text-[9px] font-black uppercase tracking-widest text-white opacity-0 transition-opacity group-hover:opacity-100">Edit</span>
+                </button>
+            </form>
             <div>
                 <p class="text-[11px] font-bold text-slate-500">Ku soo dhawaaw</p>
                 <h1 class="text-xl font-black tracking-tight">{{ $user['name'] }}</h1>
@@ -146,4 +167,12 @@
         </section>
     </main>
 </div>
+
+<script>
+document.getElementById('avatar-input').addEventListener('change', function () {
+    if (this.files && this.files.length > 0) {
+        document.getElementById('avatar-form').submit();
+    }
+});
+</script>
 @endsection

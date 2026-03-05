@@ -24,9 +24,13 @@
     <main class="flex-1 px-6 space-y-10">
         <!-- Categories -->
         <section>
-            <div class="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
+            <div id="category-filters" class="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
                 @foreach(['Dhammaan', 'Cardio', 'Strength', 'Yoga', 'HIIT'] as $index => $cat)
-                <button class="rounded-full px-8 py-3.5 text-sm font-black transition-all {{ $index === 0 ? 'bg-primary text-white shadow-xl shadow-primary/30' : 'bg-slate-900/60 text-slate-500 hover:text-white border border-white/5' }}">
+                <button
+                    type="button"
+                    data-filter="{{ strtolower($cat) }}"
+                    class="filter-btn rounded-full px-8 py-3.5 text-sm font-black transition-all {{ $index === 0 ? 'bg-primary text-white shadow-xl shadow-primary/30' : 'bg-slate-900/60 text-slate-500 hover:text-white border border-white/5' }}"
+                >
                     {{ $cat }}
                 </button>
                 @endforeach
@@ -34,9 +38,13 @@
         </section>
 
         <!-- Workouts Grid -->
-        <section class="grid grid-cols-1 gap-8 pb-10">
+        <section id="workouts-grid" class="grid grid-cols-1 gap-8 pb-10">
             @foreach($workouts as $workout)
-            <a href="{{ route('gym.video', $workout['id']) }}" class="relative block group overflow-hidden rounded-[3rem] bg-slate-900 border border-white/5 aspect-[1.3/1]">
+            <a
+                href="{{ route('gym.video', $workout['id']) }}"
+                data-category="{{ strtolower($workout['category']) }}"
+                class="workout-card relative block group overflow-hidden rounded-[3rem] bg-slate-900 border border-white/5 aspect-[1.3/1]"
+            >
                 <img src="{{ $workout['image'] }}" alt="{{ $workout['title'] }}" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-70 grayscale-[0.3] group-hover:grayscale-0" />
                 <div class="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
                 
@@ -68,7 +76,55 @@
                 </div>
             </a>
             @endforeach
+
+            <div id="empty-workouts" class="hidden rounded-3xl border border-white/10 bg-slate-900/40 px-6 py-8 text-center">
+                <p class="text-lg font-black text-white">Wax workout ah lama helin</p>
+                <p class="mt-2 text-sm font-bold text-slate-400">Dooro category kale ama ku dar workout cusub.</p>
+            </div>
         </section>
     </main>
 </div>
+
+<script>
+const filterButtons = document.querySelectorAll('.filter-btn');
+const workoutCards = document.querySelectorAll('.workout-card');
+const emptyState = document.getElementById('empty-workouts');
+
+const activeClasses = ['bg-primary', 'text-white', 'shadow-xl', 'shadow-primary/30'];
+const inactiveClasses = ['bg-slate-900/60', 'text-slate-500', 'hover:text-white', 'border', 'border-white/5'];
+
+function setActiveButton(targetButton) {
+    filterButtons.forEach((button) => {
+        button.classList.remove(...activeClasses);
+        button.classList.add(...inactiveClasses);
+    });
+
+    targetButton.classList.remove(...inactiveClasses);
+    targetButton.classList.add(...activeClasses);
+}
+
+function applyFilter(filter) {
+    let visibleCount = 0;
+
+    workoutCards.forEach((card) => {
+        const category = card.dataset.category;
+        const isVisible = filter === 'dhammaan' || category === filter;
+
+        card.classList.toggle('hidden', !isVisible);
+        if (isVisible) {
+            visibleCount += 1;
+        }
+    });
+
+    emptyState.classList.toggle('hidden', visibleCount !== 0);
+}
+
+filterButtons.forEach((button) => {
+    button.addEventListener('click', () => {
+        const filter = button.dataset.filter;
+        setActiveButton(button);
+        applyFilter(filter);
+    });
+});
+</script>
 @endsection

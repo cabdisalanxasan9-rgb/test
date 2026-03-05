@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class GymController extends Controller
 {
@@ -14,9 +15,11 @@ class GymController extends Controller
 
     public function dashboard()
     {
+        $authUser = Auth::user();
+
         $user = [
-            'name' => Auth::user()->name,
-            'avatar' => 'https://i.pravatar.cc/150?u=' . Auth::id()
+            'name' => $authUser->name,
+            'avatar' => $authUser->avatar ?: ('https://i.pravatar.cc/150?u=' . Auth::id()),
         ];
 
         $weeklyGoal = [
@@ -31,14 +34,17 @@ class GymController extends Controller
             ['icon' => 'heart', 'value' => '110', 'label' => 'Garaaca', 'unit' => 'bpm', 'color' => 'red']
         ];
 
-        $todayWorkout = [
-            'id' => 1,
-            'title' => 'Cidhibta & Lugaha',
-            'duration' => '45 daqiiqo',
-            'calories' => '320 kcal',
-            'level' => 'Dhexdhexaad',
-            'image' => 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=2670&auto=format&fit=crop'
-        ];
+        $allWorkouts = array_merge($this->defaultWorkouts(), session('custom_workouts', []));
+        $todayWorkout = !empty($allWorkouts)
+            ? end($allWorkouts)
+            : [
+                'id' => 1,
+                'title' => 'Cidhibta & Lugaha',
+                'duration' => '45 daqiiqo',
+                'calories' => '320 kcal',
+                'level' => 'Dhexdhexaad',
+                'image' => 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=2670&auto=format&fit=crop',
+            ];
 
         return view('gym.dashboard', compact('user', 'weeklyGoal', 'stats', 'todayWorkout'));
     }
@@ -121,102 +127,21 @@ class GymController extends Controller
 
     public function workouts()
     {
-        $workouts = [
-            [
-                'id' => 1,
-                'title' => 'Cidhibta & Lugaha',
-                'duration' => '45 daqiiqo',
-                'calories' => '320 kcal',
-                'level' => 'Dhexdhexaad',
-                'category' => 'Strength',
-                'image' => 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=2670&auto=format&fit=crop',
-                'video_id' => 'f1KAgv8JAmA' // Joe Wicks - Legs
-            ],
-            [
-                'id' => 2,
-                'title' => 'Cardio HIIT',
-                'duration' => '30 daqiiqo',
-                'calories' => '450 kcal',
-                'level' => 'Adag',
-                'category' => 'Cardio',
-                'image' => 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=2670&auto=format&fit=crop',
-                'video_id' => 'ml6cT4AZdqI' // Joe Wicks - HIIT
-            ],
-            [
-                'id' => 3,
-                'title' => 'Yoga Flow',
-                'duration' => '60 daqiiqo',
-                'calories' => '200 kcal',
-                'level' => 'Fudud',
-                'category' => 'Yoga',
-                'image' => 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2720&auto=format&fit=crop',
-                'video_id' => 'v7AYKMP6rOE' // Yoga with Adriene
-            ],
-            [
-                'id' => 4,
-                'title' => 'Full Body Workout',
-                'duration' => '50 daqiiqo',
-                'calories' => '380 kcal',
-                'level' => 'Dhexdhexaad',
-                'category' => 'Strength',
-                'image' => 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=2670&auto=format&fit=crop',
-                'video_id' => 'oAPCPjnU1wA' // Joe Wicks - Full Body
-            ]
-        ];
-
-        // Add user-created workouts from session
-        $customWorkouts = session('custom_workouts', []);
-        $workouts = array_merge($workouts, $customWorkouts);
+        $workouts = array_merge($this->defaultWorkouts(), session('custom_workouts', []));
 
         return view('gym.workouts', compact('workouts'));
     }
 
     public function video($id)
     {
-        $workouts = [
-            1 => [
-                'id' => 1,
-                'title' => 'Cidhibta & Lugaha',
-                'duration' => '45 daqiiqo',
-                'calories' => '320 kcal',
-                'level' => 'Dhexdhexaad',
-                'category' => 'Strength',
-                'image' => 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=2670&auto=format&fit=crop',
-                'video_id' => 'f1KAgv8JAmA'
-            ],
-            2 => [
-                'id' => 2,
-                'title' => 'Cardio HIIT',
-                'duration' => '30 daqiiqo',
-                'calories' => '450 kcal',
-                'level' => 'Adag',
-                'category' => 'Cardio',
-                'image' => 'https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?q=80&w=2669&auto=format&fit=crop',
-                'video_id' => 'ml6cT4AZdqI'
-            ],
-            3 => [
-                'id' => 3,
-                'title' => 'Yoga Flow',
-                'duration' => '60 daqiiqo',
-                'calories' => '200 kcal',
-                'level' => 'Fudud',
-                'category' => 'Yoga',
-                'image' => 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2720&auto=format&fit=crop',
-                'video_id' => 'v7AYKMP6rOE'
-            ],
-            4 => [
-                'id' => 4,
-                'title' => 'Full Body Workout',
-                'duration' => '50 daqiiqo',
-                'calories' => '380 kcal',
-                'level' => 'Dhexdhexaad',
-                'category' => 'Strength',
-                'image' => 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=2670&auto=format&fit=crop',
-                'video_id' => 'oAPCPjnU1wA'
-            ]
-        ];
+        $workouts = array_merge($this->defaultWorkouts(), session('custom_workouts', []));
+        $workoutsById = [];
 
-        $workout = $workouts[$id] ?? abort(404);
+        foreach ($workouts as $workout) {
+            $workoutsById[(int) $workout['id']] = $workout;
+        }
+
+        $workout = $workoutsById[(int) $id] ?? abort(404);
         
         return view('gym.video', compact('workout'));
     }
@@ -228,33 +153,64 @@ class GymController extends Controller
 
     public function addWorkoutSubmit(Request $request)
     {
+        $validated = $request->validate([
+            'title' => 'required|string|max:120',
+            'category' => 'required|string|in:Cardio,Strength,Yoga',
+            'duration' => 'required|integer|min:1|max:600',
+            'calories' => 'required|integer|min:1|max:5000',
+            'level' => 'required|string|in:Fudud,Dhexdhexaad,Adag',
+            'video_url' => 'nullable|url',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
+        ]);
+
         // Extract YouTube video ID from URL
-        $videoUrl = $request->input('video_url');
+        $videoUrl = $validated['video_url'] ?? null;
         $videoId = null;
+        $videoSource = 'url';
+        $storedVideoUrl = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
         
         if ($videoUrl) {
             // Parse YouTube URL to get video ID
             // Supports formats: youtube.com/watch?v=ID, youtu.be/ID, youtube.com/embed/ID
             preg_match('/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/', $videoUrl, $matches);
             $videoId = $matches[1] ?? null;
+
+            if ($videoId) {
+                $videoSource = 'youtube';
+                $storedVideoUrl = null;
+            } else {
+                $storedVideoUrl = $videoUrl;
+            }
         }
 
         // Get existing custom workouts from session
         $customWorkouts = session('custom_workouts', []);
-        
-        // Generate new ID (start from 5 since we have 4 default workouts)
-        $newId = count($customWorkouts) + 5;
+
+        $allIds = array_map(function ($workout) {
+            return (int) ($workout['id'] ?? 0);
+        }, array_merge($this->defaultWorkouts(), $customWorkouts));
+
+        $newId = !empty($allIds) ? (max($allIds) + 1) : 1;
+
+        $imageUrl = 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=2670&auto=format&fit=crop';
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('workouts', 'public');
+            $imageUrl = Storage::url($path);
+        }
         
         // Create new workout
         $newWorkout = [
             'id' => $newId,
-            'title' => $request->input('title'),
-            'duration' => $request->input('duration', '30') . ' daqiiqo',
-            'calories' => $request->input('calories', '300') . ' kcal',
-            'level' => $request->input('level', 'Dhexdhexaad'),
-            'category' => $request->input('category', 'Cardio'),
-            'image' => 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=2670&auto=format&fit=crop',
-            'video_id' => $videoId ?? 'dQw4w9WgXcQ' // Default video if none provided
+            'title' => $validated['title'],
+            'duration' => $validated['duration'] . ' daqiiqo',
+            'calories' => $validated['calories'] . ' kcal',
+            'level' => $validated['level'],
+            'category' => $validated['category'],
+            'image' => $imageUrl,
+            'video_source' => $videoSource,
+            'video_id' => $videoId,
+            'video_url' => $storedVideoUrl,
         ];
         
         // Add to custom workouts
@@ -264,6 +220,25 @@ class GymController extends Controller
         session(['custom_workouts' => $customWorkouts]);
         
         return redirect()->route('gym.workouts')->with('success', 'Jimicsiga cusub waa la keenay!');
+    }
+
+    public function updateProfileImage(Request $request)
+    {
+        $validated = $request->validate([
+            'avatar' => 'required|image|mimes:jpg,jpeg,png,webp|max:4096',
+        ]);
+
+        $user = Auth::user();
+
+        if (!empty($user->avatar) && str_starts_with($user->avatar, '/storage/avatars/')) {
+            Storage::disk('public')->delete(str_replace('/storage/', '', $user->avatar));
+        }
+
+        $path = $validated['avatar']->store('avatars', 'public');
+        $user->avatar = Storage::url($path);
+        $user->save();
+
+        return back()->with('success', 'Profile image waa la cusbooneysiiyay.');
     }
 
 
@@ -282,5 +257,77 @@ class GymController extends Controller
     public function promo()
     {
         return view('gym.promo');
+    }
+
+    private function defaultWorkouts(): array
+    {
+        return [
+            [
+                'id' => 1,
+                'title' => 'Cartoon Lugaha Burn',
+                'duration' => '45 daqiiqo',
+                'calories' => '320 kcal',
+                'level' => 'Dhexdhexaad',
+                'category' => 'Strength',
+                'image' => 'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?q=80&w=2670&auto=format&fit=crop',
+                'video_source' => 'youtube',
+                'video_id' => 'aUD4GIS_Pgc',
+            ],
+            [
+                'id' => 2,
+                'title' => 'Cartoon Cardio Rush',
+                'duration' => '30 daqiiqo',
+                'calories' => '450 kcal',
+                'level' => 'Adag',
+                'category' => 'Cardio',
+                'image' => 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=2670&auto=format&fit=crop',
+                'video_source' => 'url',
+                'video_url' => 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+            ],
+            [
+                'id' => 3,
+                'title' => 'Cartoon Yoga Flow',
+                'duration' => '60 daqiiqo',
+                'calories' => '200 kcal',
+                'level' => 'Fudud',
+                'category' => 'Yoga',
+                'image' => 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?q=80&w=2720&auto=format&fit=crop',
+                'video_source' => 'url',
+                'video_url' => 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4',
+            ],
+            [
+                'id' => 4,
+                'title' => 'Cartoon Full Body',
+                'duration' => '50 daqiiqo',
+                'calories' => '380 kcal',
+                'level' => 'Dhexdhexaad',
+                'category' => 'Strength',
+                'image' => 'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=2670&auto=format&fit=crop',
+                'video_source' => 'url',
+                'video_url' => 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+            ],
+            [
+                'id' => 5,
+                'title' => 'Cartoon HIIT Blast',
+                'duration' => '35 daqiiqo',
+                'calories' => '410 kcal',
+                'level' => 'Adag',
+                'category' => 'HIIT',
+                'image' => 'https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?q=80&w=2669&auto=format&fit=crop',
+                'video_source' => 'url',
+                'video_url' => 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+            ],
+            [
+                'id' => 6,
+                'title' => 'Cartoon Stretch Reset',
+                'duration' => '25 daqiiqo',
+                'calories' => '180 kcal',
+                'level' => 'Fudud',
+                'category' => 'Yoga',
+                'image' => 'https://images.unsplash.com/photo-1506629905607-d9b1c3b8b576?q=80&w=2670&auto=format&fit=crop',
+                'video_source' => 'url',
+                'video_url' => 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+            ],
+        ];
     }
 }
